@@ -1,0 +1,521 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "version": "1.0.0",
+        "title": "API Documentation Inventory Portal",
+        "description": "Tinkering Lab Inventory Portal"
+    },
+        "externalDocs":{
+            "description": "Inventory Portal",
+            "url": "http://13.127.42.238/"
+        },
+    "schemes": ["http"],
+    "basePath" : "http://13.127.42.238/app/v1/",
+    "tags": [
+        {
+          "name": "Users",
+          "description": "Operations for users",
+          "baseURL": "/auth"
+        },{
+            "name": "Items",
+            "description": "Everything about items"
+        },
+        {
+            "name": "Logs",
+            "description": "Access to Logs of items"
+        }
+    ],
+    "produces": ["application/json"],
+    "paths": {
+        "/auth/getAllUsers": {
+            "get": {
+                "tags": ["Users"],
+                "summary": "Get all users",
+                "responses": {
+                    "200": {
+                        "description": "success",
+                        "basePath": "./Models/",
+                        "schema": {
+                            "$ref": "./Models/userModel/UserSchema"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/login": {
+            "parameters":[
+                {
+                   "name":"Email",
+                   "required": true,
+                   "in": "query",
+                   "type": "string"
+                },
+                 {
+                    "name": "Password",
+                   "required": true,
+                   "type": "string"
+                },
+                {
+                   "name": "JWT",
+                   "required": true,
+                   "type": "string"
+                }
+            ],
+            "produces": ["application/json"],
+            "post": {
+                "tags": ["Users"],
+                "summary": " Login after verifying email format and comparing input and stored password",
+                "responses": {
+                    "200": {
+                        "description": "success",
+                        "schema": {
+                            "$ref": "./Models/userModel"
+                        }
+                    },
+                    "400": {
+                        "description": "Please provide email and password"
+                    },
+                    "401": {
+                        "description": "Incorrect email or password"
+                    }
+                }
+            }
+        },
+        
+        
+        "/auth/addUser": {
+            "parameters":[
+                {
+                   "name":"Name",
+                   "required": true,
+                   "type": "string",
+                   "description":  "Name of the user"
+                },
+                {
+                   "name":"Email",
+                   "required": true,
+                   "in": "query",
+                   "type": "email"
+                },
+                 {
+                    "name": "password",
+                   "required": true,
+                   "type": "string"
+                },
+                {
+                   "name": "passwordConfirm",
+                   "required": true,
+                   "type": "string"
+                },
+                {
+                   "name": "Designation",
+                   "required": true,
+                   "type": "string"
+                },
+                {
+                   "name": "contactNumber",
+                   "required": true,
+                   "type": "number"
+                },
+                {
+                    "name":"role" ,
+                    "type": "array[string]",
+                    "required": false,
+                    "enum":["admin", "user", "departmental"]
+                }
+               
+            ],
+            "produces": ["application/json"],
+            "post": {
+                "tags": ["Users"],
+                "summary": "To create a new user",
+                "responses": {
+                    "201": {
+                        "description": "success",
+                        "schema": {
+                            "$ref": "./Models/userModel"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/udpateUser/:id": {
+            "parameters":[
+                {
+                   "name":"Id",
+                   "required": true,
+                   "type": "string",
+                   "in": "params",
+                   "description":  "Id of the user"
+                }
+            ],
+            "produces": ["application/json"],
+            "post": {
+                "tags": ["Users"],
+                "summary": "Signup after verifying email format to create a new user",
+                "responses": {
+                    "200": {
+                        "description": "success",
+                        "schema": {
+                            "$ref": "./Models/userModel"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/signup": {
+            "parameters":[
+                {
+                   "name":"Name",
+                   "required": true,
+                   "type": "email",
+                   "description":  "Name of the user"
+                },
+                {
+                   "name":"Email",
+                   "required": true,
+                   "type": "email"
+                },
+                 {
+                    "name": "password",
+                   "required": true,
+                   "type": "string"
+                },
+                {
+                   "name": "passwordConfirm",
+                   "required": true,
+                   "type": "string"
+                },
+                {
+                   "name": "Designation",
+                   "required": true,
+                   "type": "string"
+                },
+                {
+                   "name": "contactNumber",
+                   "required": true,
+                   "type": "number"
+                },
+                {
+                    "name":"role" ,
+                    "type": "array[string]",
+                    "required": false,
+                    "enum":["admin", "user", "departmental"]
+                }
+               
+            ],
+            "produces": ["application/json"],
+            "post": {
+                "tags": ["Users"],
+                "summary": "Signup after verifying email format to create a new user",
+                "responses": {
+                    "201": {
+                        "description": "success",
+                        "schema": {
+                            "$ref": "./Models/userModel"
+                        }
+                    }
+                }
+            }
+        },
+        "/item/additem": {
+            "parameters":[
+                {
+                   "name":"itemName",
+                   "required": true,
+                   "type": "string",
+                   "description":  "Name of the Item to be added"
+                },
+                {
+                   "name":"Quantity",
+                   "required": true,
+                   "type": "number"
+                },
+                 {
+                    "name": "itemType",
+                   "required": true,
+                   "type": "string",
+                   "enum":["issuable", "consumables", "minor", "major"]
+                },
+                {
+                   "name": "limit",
+                   "required": true,
+                   "type": "number"
+                },
+                {
+                   "name": "unit",
+                   "required": true,
+                   "type": "string"
+                }
+               
+            ],
+            "produces": ["application/json"],
+            "post": {
+                "tags": ["Items"],
+                "summary": "To add a new item and store in the itemModel",
+                "responses": {
+                    "201": {
+                        "description": "success",
+                        "schema": {
+                            "$ref": "./Models/itemModel"
+                        }
+                    }
+                }
+            }
+        },
+        "/item/updateitem/:id": {
+            "parameters":[
+                {
+                   "name":"Id",
+                   "required": true,
+                   "type": "string",
+                   "description":  "Id of the item"
+                }
+               
+            ],
+            "produces": ["application/json"],
+            "post": {
+                "tags": ["Items"],
+                "summary": "To update a stored item",
+                "responses": {
+                    "200": {
+                        "description": "success",
+                        "schema": {
+                            "$ref": "./Models/itemModel"
+                        }
+                    }
+                }
+            }
+        },
+        "/item/getitems": {
+           
+            "produces": ["application/json"],
+            "get": {
+                "tags": ["Items"],
+                "summary": "Fetch all saved items from itemModel",
+                "responses": {
+                    "200": {
+                        "description": "success",
+                        "schema": {
+                            "$ref": "./Models/itemModel"
+                        }
+                    }
+                }
+            }
+        },
+        "/item/getitem/:id": {
+           "parameters": [
+            {
+                "name":"Id",
+                "required": true,
+                "type": "string"
+            }
+           ],
+            "produces": ["application/json"],
+            "get": {
+                "tags": ["Items"],
+                "summary": "To get a single item by its id",
+                "responses": {
+                    "200": {
+                        "description": "success",
+                        "schema": {
+                            "$ref": "./Models/itemModel"
+                        }
+                    }
+                }
+            }
+        },
+        
+        "/item/update/:id/qty": {
+           "parameters": [
+            {
+                "name":"Id",
+                "required": true,
+                "type": "string",
+                "in":"params"
+            },{
+                "name":"Quantity",
+                "required": true,
+                "type": "number"
+            }
+           ],
+            "produces": ["application/json"],
+            "post": {
+                "tags": ["Items"],
+                "summary": " To get an item by its id and increase its quantity by qty",
+                "responses": {
+                    "200": {
+                        "description": "success",
+                        "schema": {
+                            "$ref": "./Models/itemModel"
+                        }
+                    }
+                }
+            }
+        },
+        "/item/delete/:id/qty": {
+           "parameters": [
+            {
+                "name":"Id",
+                "required": true,
+                "type": "string"
+            },
+            {
+                "name":"Id",
+                "required": true,
+                "type": "number"
+            }
+           ],
+            "produces": ["application/json"],
+            "psot": {
+                "tags": ["Items"],
+                "summary": " To get an item by its id and decrease its quantity by qty",
+                "responses": {
+                    "204": {
+                        "description": "success",
+                        "schema": {
+                            "$ref": "./Models/itemModel"
+                        }
+                    }
+                }
+            }
+        },
+        "/item/deleteitem/:id": {
+           "parameters": [
+            {
+                "name":"Id",
+                "required": true,
+                "type": "string"
+            }
+           ],
+            "produces": ["application/json"],
+            "get": {
+                "tags": ["Items"],
+                "summary": "To get an item by its id and making its active: false",
+                "responses": {
+                    "20": {
+                        "description": "success",
+                        "schema": {
+                            "$ref": "./Models/itemModel"
+                        }
+                    }
+                }
+            }
+        },
+        "/logs/issueitem/:id/:qty": {
+           "parameters": [
+            {
+                "name":"Id",
+                "required": true,
+                "type": "string"
+            },
+            {
+                "name": "Quantity",
+                "required": true,
+                "type": "number"
+            }
+           ],
+            "produces": ["application/json"],
+            "post": {
+                "tags": ["Logs"],
+                "summary": "Fetchs an item and qty from the itemModal by id and decreases its quantity by qty. Checks if  if (item.quantity <= 2 * item.limit) then mails to rethinktinkering@iitr.ac.in.",
+                "responses": {
+                    "201": {
+                        "description": "success",
+                        "schema": {
+                            "$ref": "./Models/itemModel"
+                        }
+                    }
+                }
+            }
+        },
+        "/logs/getitems/": {
+           
+            "produces": ["application/json"],
+            "get": {
+                "tags": ["Logs"],
+                "summary": "To fetch logs of all itemd",
+                "responses": {
+                    "200": {
+                        "description": "success",
+                        "schema": {
+                            "$ref": "./Models/itemModel"
+                        }
+                    }
+                }
+            }
+        },
+        "/logs/return/:id": {
+           "parameters": [
+            {
+                "name":"Id",
+                "required": true,
+                "type": "string"
+            }
+           ],
+            "produces": ["application/json"],
+            "post": {
+                "tags": ["Logs"],
+                "summary": " Finds by id in LogsModel and checks if returnStatus is true then updates the quantity, add returnDate and toggles the returnStatus to false.",
+                "responses": {
+                    "200": {
+                        "description": "success",
+                        "schema": {
+                            "$ref": "./Models/itemModel"
+                        }
+                    }
+                }
+            }
+        },
+        "logs/delete": {
+           "parameters": [
+            {
+                "name":"Id",
+                "required": true,
+                "type": "string"
+            }
+           ],
+            "produces": ["application/json"],
+            "get": {
+                "tags": ["Logs"],
+                "summary": " To delete all logs",
+                "responses": {
+                    "200": {
+                        "description": "success",
+                        "schema": {
+                            "$ref": "./Models/itemModel"
+                        }
+                    }
+                }
+            }
+        },
+        "logs/additem/:id/:qty": {
+            "parameters":[
+                {
+                    "name":"Id",
+                    "required": true,
+                    "type": "string"
+                },
+                {
+                    "name":"Quantity",
+                    "required": true,
+                    "type": "number"
+                }
+            ],
+            "produces": ["application/json"],
+                "post": {
+                    "tags": ["Logs"],
+                    "summary": "To get an item by its id and increase its quantity by qty",
+                    "responses": {
+                        "200": {
+                            "description": "success",
+                            "schema": {
+                                "$ref": "./Models/itemModel"
+                            }
+                        }
+                    }
+                }
+        }
+
+    }
+}
