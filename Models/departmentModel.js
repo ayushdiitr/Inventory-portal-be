@@ -11,7 +11,7 @@ const DepartmentSchema = new mongoose.Schema({
   },
   contactNumber:{
     type:String,
-    reuired:[true,"contact number of hte department is required"]
+    required:[true,"contact number of hte department is required"]
   }
 });
 
