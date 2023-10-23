@@ -26,7 +26,12 @@ const ItemSchema = new mongoose.Schema({
     type: Boolean,
     default: true,
     select: false
-  }
+  },
+  owners: {
+    type: Map,
+    of: Number,
+    required: true,
+  },
 });
 
 module.exports = mongoose.model("itemModel", ItemSchema);

@@ -53,21 +53,28 @@ const createAndSendToken = catchAsync(async (user, statusCode, res) => {
 //This is the signup function to create user
 exports.signup = catchAsync(async (req, res, next) => {
   const newUser = await User.create({
+    userId:req.body.userId,
     name: req.body.name,
     email: req.body.email,
     password: req.body.password,
     passwordConfirm: req.body.passwordConfirm,
     designation: req.body.designation,
     contactNumber: req.body.contactNumber,
+    department:req.body.department,
     // passwordChangedAt: req.body.passwordChangedAt
-    role: req.body.role || "user",
+    roles:{
+      role:req.body.roles.role || "User",
+      lab:req.body.roles.lab
+    },
+    issuedItems:[],
+    firstLogin:true
   });
   createAndSendToken(newUser, 201, res);
 
-  res.status(201).json({
-    status: "success",
-    data: newUser,
-  });
+  // res.status(201).json({ 
+  //   status: "success",
+  //   data: newUser,
+  // });
   // next();
 });
 
@@ -239,6 +246,7 @@ exports.getAllUsers = catchAsync(async (req, res, next) => {
 
 exports.addUser = catchAsync(async (req, res, next) => {
   const newUser = await User.create({
+    userId:req.body.userId,
     name: req.body.name,
     email: req.body.email,
     password: req.body.password,
@@ -246,7 +254,12 @@ exports.addUser = catchAsync(async (req, res, next) => {
     designation: req.body.designation,
     contactNumber: req.body.contactNumber,
     // passwordChangedAt: req.body.passwordChangedAt
-    role: req.body.role || "user",
+    department:req.body.department,
+    roles:{
+      role: req.body.roles.role || "user",
+      lab:req.body.roles.lab
+    },
+    firstLogin:true
   });
 
   res.status(201).json({

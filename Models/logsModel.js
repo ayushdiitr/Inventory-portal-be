@@ -1,5 +1,4 @@
 const mongoose = require("mongoose");
-const userSchema = require("./userModel");
 
 const LogsSchema = new mongoose.Schema({
   
@@ -13,9 +12,37 @@ const LogsSchema = new mongoose.Schema({
     required: [true, "Please enter quantity"],
     min: 1,
   },
-  issuer: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "userModel",
+  issuedFrom:{
+    issuer:{
+      type:String,
+      required:[true,"issuer is required"]
+    },
+    labRef:{
+      type:mongoose.Schema.Types.ObjectId,
+      ref:"labModel"
+    }
+  },
+  issuedTo:{
+    type:mongoose.Schema.Types.ObjectId,
+    ref:"labModel" //? but individuals wont be able to access items??
+  },
+  item:{
+    itemId:{
+      type:mongoose.Schema.Types.ObjectId,
+      ref:"itemModel"
+    },
+    quantity:{
+      type:Number,
+      required:[true,"Quantity of items is required"]
+    }
+  },
+  dateOfIssue:{
+    type:Date,
+    required:[true,"date of issue is required"]
+  },
+  validity:{
+    type:Date,
+    required:[true,"validity is required"]
   },
   issueDate: {
     type: String,

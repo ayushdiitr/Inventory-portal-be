@@ -9,8 +9,9 @@ var dbName = process.env.DB_NAME;
 var dbUser = process.env.DB_USERNAME;
 var dbPass = process.env.DB_PASSWORD;
 var dbPort = process.env.DB_PORT || "27017";
+var connString = process.env.CONNECTION_STRING || "mongodb://localhost:27017"
 
-mongoose.connect("mongodb://localhost:27017" , {
+mongoose.connect(connString , {
   useNewUrlParser: true, useUnifiedTopology: true
 }).then(() => {
   console.log('Database Connected')
