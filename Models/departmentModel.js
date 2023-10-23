@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 
 const departmentSchema = new mongoose.Schema({
-_id:Number,
+
 name: {
     type: String,
     required: [true, "Name is required"],
