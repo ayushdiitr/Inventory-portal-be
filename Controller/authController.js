@@ -53,42 +53,52 @@ const createAndSendToken = catchAsync(async (user, statusCode, res) => {
 
 //This is the signup function to create user
 exports.signup = catchAsync(async (req, res, next) => {
-  const lab = req.body.lab;
-  const foundLab = labModel.find({ name: lab });
-  const getDep = async(foundLab)=>{
-    const dep = new Promise((resolve, reject) => {
-      if (foundLab) {
-        resolve(foundLab.populate('department').exec((err,department)=>{
-          return department._id;
-        }));
-      } else {
-       
-      }
+  const password = req.body.password;
+  const passwordConfirm = req.body.passwordConfirm;
+  if (password !== passwordConfirm) {
+    return res.status(400).json({
+      status: "fail",
+      message: "Passwords do not match",
     });
-    return dep;
+  } else {
+    const lab = req.body.lab;
+    const foundLab = labModel.find({ name: lab });
+    const getDep = async (foundLab) => {
+      const dep = new Promise((resolve, reject) => {
+        if (foundLab) {
+          resolve(foundLab.populate('department').exec((err, department) => {
+            return department._id;
+          }));
+        } else {
+
+        }
+      });
+      return dep;
+    }
+
+    if (foundLab) {
+      const department = await getDep(foundLab)
+      const newUser = await User.create({
+        userId: req.body.userId,
+        name: req.body.name,
+        email: req.body.email,
+        password: req.body.password,
+        passwordConfirm: req.body.passwordConfirm,
+        designation: req.body.designation,
+        contactNumber: req.body.contactNumber,
+        department: department,
+        // passwordChangedAt: req.body.passwordChangedAt
+        roles: {
+          role: req.body.roles.role || "User",
+          lab: foundLab._id,
+        },
+        issuedItems: [],
+        firstLogin: true,
+      });
+      createAndSendToken(newUser, 201, res);
+    }
   }
-  
-  if (foundLab) {
-    const department = await getDep(foundLab)
-    const newUser = await User.create({
-      userId: req.body.userId,
-      name: req.body.name,
-      email: req.body.email,
-      password: req.body.password,
-      passwordConfirm: req.body.passwordConfirm,
-      designation: req.body.designation,
-      contactNumber: req.body.contactNumber,
-      department: department,
-      // passwordChangedAt: req.body.passwordChangedAt
-      roles: {
-        role: req.body.roles.role || "User",
-        lab: foundLab._id,
-      },
-      issuedItems: [],
-      firstLogin: true,
-    });
-    createAndSendToken(newUser, 201, res);
-  }
+
 
   // res.status(201).json({
   //   status: "success",
