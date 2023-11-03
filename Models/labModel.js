@@ -12,6 +12,10 @@ const LabSchema = new mongoose.Schema({
   contactNumber:{
     type:String,
     required:[true,"contactNumber of lab is required"]
+  },
+  department:{
+    type:mongoose.Schema.Types.ObjectId,
+    ref:"departmentModel"
   }
 });
 
