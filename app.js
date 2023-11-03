@@ -6,6 +6,7 @@ const globalErrorHandler = require("./Controller/errorController");
 const authRouter = require("./Routes/authRoutes");
 const itemRouter = require("./Routes/itemRoutes");
 const logsRouter = require("./Routes/logsRoutes");
+const departmentRouter=require("./Routes/departmentRoutes")
 const AppError = require("./utils/appError");
 const swaggerUi = require("swagger-ui-express");
 dotenv.config();
@@ -54,6 +55,7 @@ app.use("/app/v1/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDoc));
 app.use("/app/v1/auth", authRouter);
 app.use("/app/v1/item", itemRouter);
 app.use("/app/v1/logs", logsRouter);
+app.use("/app/v1/department",departmentRouter);
 
 app.use("*", (req, res, next) => {
   next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));

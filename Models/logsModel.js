@@ -26,24 +26,16 @@ const LogsSchema = new mongoose.Schema({
     type:mongoose.Schema.Types.ObjectId,
     ref:"labModel" //? but individuals wont be able to access items??
   },
-  item:{
-    itemId:{
-      type:mongoose.Schema.Types.ObjectId,
-      ref:"itemModel"
-    },
-    quantity:{
-      type:Number,
-      required:[true,"Quantity of items is required"]
-    }
-  },
+  
   dateOfIssue:{
     type:Date,
     required:[true,"date of issue is required"]
   },
-  validity:{
-    type:Date,
-    required:[true,"validity is required"]
-  },
+  // Not sure about the use of validity
+  // validity:{
+  //   type:Date,
+  //   required:[true,"validity is required"]
+  // },
   issueDate: {
     type: String,
     required: true,
