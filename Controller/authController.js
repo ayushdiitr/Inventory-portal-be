@@ -62,9 +62,10 @@ exports.signup = catchAsync(async (req, res, next) => {
     });
   } else {
     const lab = req.body.lab;
-    const foundLab = await labModel.find({ name: lab })
-    const department = await labModel.find({ name: lab }).populate('department').exec();
+    const foundLab = await labModel.findOne({ name: lab })
     if (foundLab) {
+      const department = foundLab.department;
+      console.log(department);
       const newUser = await User.create({
         userId: req.body.userId,
         name: req.body.name,

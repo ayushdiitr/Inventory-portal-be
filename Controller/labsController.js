@@ -3,9 +3,8 @@ const DepartmentModel = require("../Models/departmentModel");
 
 exports.addLab = async (req, res) => {
   const { name, email, contactNumber, department } = req.body; //the department will be a drop down in the frontend
-
   try {
-    const foundDepartment = DepartmentModel.find({ name: department });
+    const foundDepartment = await DepartmentModel.findOne({ name: department });
     if (foundDepartment) {
       const id = foundDepartment._id;
       const newLab = await LabModel.create({
