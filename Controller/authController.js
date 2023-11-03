@@ -5,6 +5,7 @@ const User = require("../Models/userModel");
 const catchAsync = require("../utils/catchAsync");
 const AppError = require("../utils/appError");
 const Session = require("../Models/sessionModel");
+const labModel = require("../Models/labModel");
 // const sendEmail = require('../utils/email');
 
 const signToken = (id) => {
@@ -52,26 +53,44 @@ const createAndSendToken = catchAsync(async (user, statusCode, res) => {
 
 //This is the signup function to create user
 exports.signup = catchAsync(async (req, res, next) => {
-  const newUser = await User.create({
-    userId:req.body.userId,
-    name: req.body.name,
-    email: req.body.email,
-    password: req.body.password,
-    passwordConfirm: req.body.passwordConfirm,
-    designation: req.body.designation,
-    contactNumber: req.body.contactNumber,
-    department:req.body.department,
-    // passwordChangedAt: req.body.passwordChangedAt
-    roles:{
-      role:req.body.roles.role || "User",
-      lab:req.body.roles.lab
-    },
-    issuedItems:[],
-    firstLogin:true
-  });
-  createAndSendToken(newUser, 201, res);
+  const lab = req.body.lab;
+  const foundLab = labModel.find({ name: lab });
+  const getDep = async(foundLab)=>{
+    const dep = new Promise((resolve, reject) => {
+      if (foundLab) {
+        resolve(foundLab.populate('department').exec((err,department)=>{
+          return department._id;
+        }));
+      } else {
+       
+      }
+    });
+    return dep;
+  }
+  
+  if (foundLab) {
+    const department = await getDep(foundLab)
+    const newUser = await User.create({
+      userId: req.body.userId,
+      name: req.body.name,
+      email: req.body.email,
+      password: req.body.password,
+      passwordConfirm: req.body.passwordConfirm,
+      designation: req.body.designation,
+      contactNumber: req.body.contactNumber,
+      department: department,
+      // passwordChangedAt: req.body.passwordChangedAt
+      roles: {
+        role: req.body.roles.role || "User",
+        lab: foundLab._id,
+      },
+      issuedItems: [],
+      firstLogin: true,
+    });
+    createAndSendToken(newUser, 201, res);
+  }
 
-  // res.status(201).json({ 
+  // res.status(201).json({
   //   status: "success",
   //   data: newUser,
   // });
@@ -246,7 +265,7 @@ exports.getAllUsers = catchAsync(async (req, res, next) => {
 
 exports.addUser = catchAsync(async (req, res, next) => {
   const newUser = await User.create({
-    userId:req.body.userId,
+    userId: req.body.userId,
     name: req.body.name,
     email: req.body.email,
     password: req.body.password,
@@ -254,12 +273,12 @@ exports.addUser = catchAsync(async (req, res, next) => {
     designation: req.body.designation,
     contactNumber: req.body.contactNumber,
     // passwordChangedAt: req.body.passwordChangedAt
-    department:req.body.department,
-    roles:{
+    department: req.body.department,
+    roles: {
       role: req.body.roles.role || "user",
-      lab:req.body.roles.lab
+      lab: req.body.roles.lab,
     },
-    firstLogin:true
+    firstLogin: true,
   });
 
   res.status(201).json({
