@@ -62,22 +62,9 @@ exports.signup = catchAsync(async (req, res, next) => {
     });
   } else {
     const lab = req.body.lab;
-    const foundLab = labModel.find({ name: lab });
-    const getDep = async (foundLab) => {
-      const dep = new Promise((resolve, reject) => {
-        if (foundLab) {
-          resolve(foundLab.populate('department').exec((err, department) => {
-            return department._id;
-          }));
-        } else {
-
-        }
-      });
-      return dep;
-    }
-
+    const foundLab = await labModel.find({ name: lab })
+    const department = await labModel.find({ name: lab }).populate('department').exec();
     if (foundLab) {
-      const department = await getDep(foundLab)
       const newUser = await User.create({
         userId: req.body.userId,
         name: req.body.name,
