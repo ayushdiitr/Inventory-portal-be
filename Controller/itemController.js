@@ -5,6 +5,7 @@ const AppError = require("../utils/appError");
 const catchAsync = require("../utils/catchAsync");
 
 exports.AddItems = catchAsync(async (req, res) => {
+    //!shouldnt we first check if the item is already in the database and then push the owner in the owners array
     const newItem = await Item.create({
         ...req.body,
     });

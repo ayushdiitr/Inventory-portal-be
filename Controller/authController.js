@@ -6,6 +6,7 @@ const catchAsync = require("../utils/catchAsync");
 const AppError = require("../utils/appError");
 const Session = require("../Models/sessionModel");
 const labModel = require("../Models/labModel");
+const departmentModel = require("../Models/departmentModel");
 // const sendEmail = require('../utils/email');
 
 const signToken = (id) => {
@@ -109,6 +110,12 @@ exports.login = catchAsync(async (req, res, next) => {
   if (!user || !(await user.correctPassword(password, user.password))) {
     return next(new AppError("Incorrect email or password", 401));
   }
+
+  const dep = await departmentModel.findById(user.department);
+  const lab = await labModel.findById(user.roles.lab);
+
+  user.department = dep;
+  user.roles.lab = lab;
 
   //Creating the token
   createAndSendToken(user, 200, res);
@@ -214,6 +221,12 @@ exports.refreshController = catchAsync(async (req, res, next) => {
   if (decoded.id) {
     user = await User.findById({ _id: decoded.id });
   }
+
+  const dep = await departmentModel.findById(user.department);
+  const lab = await labModel.findById(user.roles.lab);
+
+  user.department = dep;
+  user.roles.lab = lab;
 
   res.status(200).json({
     status: "success",
