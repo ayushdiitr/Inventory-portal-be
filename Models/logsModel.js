@@ -20,6 +20,10 @@ const LogsSchema = new mongoose.Schema({
     labRef:{
       type:mongoose.Schema.Types.ObjectId,
       ref:"labModel"
+    },
+    labName: {
+      type: String,
+      required: false,
     }
   },
   issuedTo:{
@@ -69,6 +73,11 @@ const LogsSchema = new mongoose.Schema({
     type: Boolean,
     default: true,
   },
+  status:{
+    type:String,
+    enum:["verified","unverified"],
+    default:"unverified"
+  }
 });
 
 LogsSchema.pre(/^find/, async function (next) {

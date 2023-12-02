@@ -26,6 +26,22 @@ exports.addLab = async (req, res) => {
       }
     }
   } catch (e) {
-    console.log(error);
+    console.log(e);
   }
 };
+
+exports.getLabs = async (req, res) => {
+  const labList = await LabModel.find().populate(
+    "department"
+  );
+  if (labList) {
+    return res.status(200).json({
+      status: "Success",
+      data: labList,
+    });
+  } else {
+    return res.json({
+      message: "Labs not found",
+    });
+  }
+}

@@ -7,6 +7,7 @@ const AppError = require("../utils/appError");
 const Session = require("../Models/sessionModel");
 const labModel = require("../Models/labModel");
 const departmentModel = require("../Models/departmentModel");
+const mailService = require("../utils/mailSerive");
 // const sendEmail = require('../utils/email');
 
 const signToken = (id) => {
@@ -292,8 +293,69 @@ exports.addUser = catchAsync(async (req, res, next) => {
     firstLogin: true,
   });
 
+  if(res.status(201)){
+    const mailOptions = {
+      from: "a_dhiman@mt.iitr.ac.in",
+      to: req.body.email,
+      subject: `Welcome to Inventory Portal, Tinkering Lab`,
+      html: ` This is to inform you that your credentials has been created to access the Inventory Portal, Tinkering Lab.
+      <p>Kindly login with the following credentials:</p>
+      <p>Email: ${req.body.email}</p>
+      <p>Password: ${req.body.password}</p>
+
+      <p>Onced logged in, you can always change your password from the profile section.</p>
+      <p>For any queries, please contact the admin ayushd175@gmail.com.</p>
+      <br>
+      Regards,
+      <p>Tinkering Lab Students' Body</p>
+      </br>
+      `,      
+
+    };
+    mailService.sendMail(mailOptions, function (err) {
+      if (err) {
+        return next(new AppError(err.message, err.statusCode));
+      } else {
+        console.log("Mail sent successfully!");
+      }
+    });
+  }
   res.status(201).json({
     status: "success",
     data: newUser,
   });
 });
+
+
+exports.updateUser = catchAsync(async (req, res, next) => {
+  const id = req.params.id;
+  const getUser = await User.findByIdAndUpdate(id, 
+    {
+      ...req.body,
+    });
+    res.status(200).json({
+      status: "user updated successfully",
+      data: getUser,
+    });
+  });
+
+exports.searchUsers = catchAsync(async (req, res, next) => {
+  const query = req.body.query;
+  console.log(query);
+  const users = await User.find({
+    $or: [
+      { name: { $regex: query, $options: 'i' } },
+    ],
+  });
+
+  if (!users) {
+    return next(new AppError("No users found with that query", 404));
+  }
+
+  res.status(200).json({
+    status: "success",
+    data: {
+      users,
+    },
+  });
+})

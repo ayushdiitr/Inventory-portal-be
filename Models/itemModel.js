@@ -32,6 +32,10 @@ const ItemSchema = new mongoose.Schema({
     of: Number,
     required: true,
   },
+  lab: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "labModel",
+  },
 });
 
 module.exports = mongoose.model("itemModel", ItemSchema);
