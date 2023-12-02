@@ -193,8 +193,9 @@ exports.TransferItem = catchAsync(async (req, res, next) => {
   let id = req.params.id;
   let qty = 0;
   let item = await Logs.findById(id);
-  const newLabId = req.params.id;
-  console.log(newLabId, "item");
+  const newLabId = req.body.newLabId;
+  const newLab = await Lab.findById(newLabId);
+  console.log(newLab, "item");
   if (item.returnStatus === true) {
     qty = item.quantity;
     // date = String(new Date());
@@ -204,6 +205,7 @@ exports.TransferItem = catchAsync(async (req, res, next) => {
   }
   // item.item.quantity += qty;
   item.issuedFrom.labRef = newLabId;
+  item.issuedFrom.labName = newLab.name;
   await item.item.save();
   const updatedData = await item.save();
   res.status(200).json({
