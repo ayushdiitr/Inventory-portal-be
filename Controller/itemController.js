@@ -1,5 +1,6 @@
 const { findById } = require("../Models/itemModel");
 const Item = require("../Models/itemModel");
+const Lab = require("../Models/labModel");
 const Log = require("../Models/logsModel");
 const AppError = require("../utils/appError");
 const catchAsync = require("../utils/catchAsync");
@@ -27,9 +28,12 @@ exports.GetItems = catchAsync(async (req, res) => {
 exports.GetItem = catchAsync(async (req, res, next) => {
     const { id } = req.params;
     const item = await Item.findOne({ _id: id });
+    const lab = await Lab.findById(item.lab);
+    console.log(lab.name);
     return res.status(200).json({
         status: "success",
         data: item,
+        labName: lab.name,
     });
 });
 
