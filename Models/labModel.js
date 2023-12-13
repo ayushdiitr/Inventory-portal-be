@@ -5,6 +5,10 @@ const LabSchema = new mongoose.Schema({
     type:String,
     required:[true,"name of the lab is required"]
   },
+  facultyCoordinator:{
+    type:String,
+    required:[true,"facultyIncharge of the lab is required"]
+  },
   email:{
     type:String,
     required:[true,"email of the lab is required"]

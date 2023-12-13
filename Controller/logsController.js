@@ -11,14 +11,15 @@ exports.issueItem = catchAsync(async (req, res, next) => {
   let item = await Item.findById(id);
   item.quantity -= qty;
   let lab = await Lab.findById(item.lab);
-  console.log(lab.name);
+  const fc = lab.email;
+  console.log(fc, "faculty coordinator");
   // const newItem = await Logs.create({
   //   ...req.body,
   // });
   
   const newItem = await Logs.create({
     ...req.body,
-    issuedFrom: {issuer: req.body.issuedFrom.issuer, labName: lab.name},
+    issuedFrom: {issuer: req.body.issuedFrom.issuer, labName: lab.name, fcName: fc},
   });
   
 //   if (item.quantity <= 2 * item.limit) {
@@ -48,7 +49,7 @@ exports.issueItem = catchAsync(async (req, res, next) => {
   if(res.status(201)){
     const mailOptions = {
       from: process.env.EMAIL_USER || "a_dhiman@mt.iitr.ac.in",
-      to: req.body.issuedToEmail,
+      to: fc,
       subject: `Verify issue of inventory ${item.itemName}`,
       html: ` This is to inform you that ${req.body.issuedFrom.issuer} (${req.body.issuedFromEmail}) has requested ${item.itemName} from the inventory.
       <br>Item Details: </br>
@@ -75,14 +76,14 @@ exports.issueItem = catchAsync(async (req, res, next) => {
 
   res.status(201).json({
     status: "Success",
-    data: newItem,
+    // data: newItem,
   });
 });
 
 exports.approveIssue = catchAsync(async (req, res, next) => {
   let id = req.params.id;
   let item = await Logs.findById(id);
-  console.log(id,item);
+  console.log(item.issuedFrom.fcName);
   item.status = "verified";
   const updatedData = await item.save();
   res.status(200).json({
@@ -90,16 +91,17 @@ exports.approveIssue = catchAsync(async (req, res, next) => {
     data: "Item Issued",
   });
   console.log(updatedData);
+  const fcName = item.issuedFrom.fcName;
   if(res.statusCode == 200){
     const mailOptions = {
       from: "a_dhiman@mt.iitr.ac.in",
-      to: "ayushdmt@outlook.com",
-      subject: `Issue of inventory ${item.itemName}`,
-      html: ` This is to inform you that ${req.body.holderName} has issued ${item.itemName} from the inventory.
-      Item Details: 
-      Item Name: ${item.itemName}
-      Item ID: ${item._id} (for tracking purpose)
-
+      to: fcName,
+      subject: `Issue of inventory ${item.item.itemName}`,
+      html: ` This is to inform you that ${item.holderName} has issued ${item.item.itemName} from the inventory.
+      <p>Item Details-> </p>
+      <p>Item Name: ${item.item.itemName}</p>
+      <p>Item ID: ${item._id} (for tracking purpose)</p>
+      <p>Lab: ${item.issuedFrom.labName}</p>
       Regards,`,      
 
     };
@@ -193,13 +195,16 @@ exports.TransferItem = catchAsync(async (req, res, next) => {
   let id = req.params.id;
   let qty = 0;
   let item = await Logs.findById(id);
+  const existingLabName = item.issuedFrom.labName;
   const newLabId = req.body.newLabId;
   const newLab = await Lab.findById(newLabId);
-  console.log(newLab, "item");
+  const existingFC = item.issuedFrom.fcName;
+  const newFC = newLab.email;
+  const d = new Date();
+  console.log(existingFC, newFC, "item");
   if (item.returnStatus === true) {
     qty = item.quantity;
     // date = String(new Date());
-    const d = new Date();
     item.returnDate = d.toLocaleDateString();
     item.returnStatus = true; //changed to true
   }
@@ -208,6 +213,49 @@ exports.TransferItem = catchAsync(async (req, res, next) => {
   item.issuedFrom.labName = newLab.name;
   await item.item.save();
   const updatedData = await item.save();
+
+  if(res.statusCode == 200){
+    const mailOptions = {
+      from: "a_dhiman@mt.iitr.ac.in",
+      to: existingFC,
+      subject: `Transfer of inventory ${item.item.itemName}`,
+      html: ` This is to inform you that ${item.holderName} has requested the transfer of ${item.item.itemName} 
+      from ${existingLabName} to ${newLab.name}.
+      <p>Item Details-> </p>   
+      <p>Item Name: ${item.item.itemName}</p>
+      <p>Item ID: ${item._id} (for tracking purpose)</p>
+      <p>Date : ${d.toLocaleString()}</p>
+      Regards,   
+      `,
+    };
+    const mailToNewLab = {
+      from: "a_dhiman@mt.iitr.ac.in",
+      to: newFC,
+      subject: `Transfer of inventory ${item.item.itemName}`,
+      html: ` This is to inform you that ${item.holderName} has transferred ${item.item.itemName} 
+      from ${existingLabName} to your Lab ${newLab.name}.
+      <p>Item Details-> </p>   
+      <p>Item Name: ${item.item.itemName}</p>
+      <p>Item ID: ${item._id} (for tracking purpose)</p>
+      <p>Date : ${d.toLocaleString()}</p>
+      Regards,   
+      `,
+    };
+    mailService.sendMail(mailOptions, function (err) {
+      if (err) {
+        return next(new AppError(err.message, err.statusCode));
+      } else {
+        console.log("Mail sent successfully!");
+      }
+    });
+    mailService.sendMail(mailToNewLab, function (err) {
+      if (err) {
+        return next(new AppError(err.message, err.statusCode));
+      } else {
+        console.log("Mail sent successfully!");
+      }
+    });
+  }
   res.status(200).json({
     status: "Success",
     data: updatedData,

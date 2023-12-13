@@ -24,6 +24,10 @@ const LogsSchema = new mongoose.Schema({
     labName: {
       type: String,
       required: false,
+    },
+    fcName:{
+      type:String,
+      required:true
     }
   },
   issuedTo:{
