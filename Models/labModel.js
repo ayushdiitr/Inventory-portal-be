@@ -6,8 +6,8 @@ const LabSchema = new mongoose.Schema({
     required:[true,"name of the lab is required"]
   },
   facultyCoordinator:{
-    type:String,
-    required:[true,"facultyIncharge of the lab is required"]
+    type:mongoose.Schema.Types.ObjectId,
+    ref:"userModel"
   },
   email:{
     type:String,
@@ -20,7 +20,16 @@ const LabSchema = new mongoose.Schema({
   department:{
     type:mongoose.Schema.Types.ObjectId,
     ref:"departmentModel"
-  }
+  },
+  labAssistants:[{
+    type:mongoose.Schema.Types.ObjectId,
+    ref:"userModel"
+  }],
+  items:[{
+   type:mongoose.Schema.Types.ObjectId,
+   ref:"itemModel"
+  }],
+  
 });
 
 module.exports = mongoose.model("labModel", LabSchema);

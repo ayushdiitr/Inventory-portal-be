@@ -8,6 +8,7 @@ const Session = require("../Models/sessionModel");
 const labModel = require("../Models/labModel");
 const departmentModel = require("../Models/departmentModel");
 const mailService = require("../utils/mailSerive");
+const applicationModel = require("../Models/applicationModel");
 // const sendEmail = require('../utils/email');
 
 const signToken = (id) => {
@@ -53,8 +54,55 @@ const createAndSendToken = catchAsync(async (user, statusCode, res) => {
   });
 });
 
+
+exports.userSignUp = catchAsync(async (req, res, next) => {
+  /* REQ BODY
+  {
+    password:
+    passwordConfirm:
+    lab:
+    name:
+    email:
+    designation:
+    contactNumber:
+  }
+  */
+  const { password, passwordConfirm, lab, name, email, designation, contactNumber } = req.body;
+  if (password !== passwordConfirm) {
+    return res.status(400).json({
+      status: 'fail',
+      message: 'Passwords do not match'
+    });
+  }
+  const foundLab = await labModel.findOne({ name: lab })
+  if (!foundLab) {
+    return res.status(404).json({
+      status: 'fail',
+      message: 'Lab not found'
+    });
+  }
+  const department = foundLab.department;
+  const newUser = await User.create({
+    // userId: req.body.userId,
+    name,
+    email,
+    password,
+    designation,
+    contactNumber,
+    department,
+    roles: {
+      role: "User",
+      lab: foundLab._id,
+    },
+    issuedItems: [],
+    firstLogin: true,
+  });
+  createAndSendToken(newUser, 201, res);
+})
+
 //This is the signup function to create user
 exports.signup = catchAsync(async (req, res, next) => {
+
   const password = req.body.password;
   const passwordConfirm = req.body.passwordConfirm;
   if (password !== passwordConfirm) {
@@ -293,7 +341,7 @@ exports.addUser = catchAsync(async (req, res, next) => {
     firstLogin: true,
   });
 
-  if(res.status(201)){
+  if (res.status(201)) {
     const mailOptions = {
       from: "a_dhiman@mt.iitr.ac.in",
       to: req.body.email,
@@ -309,7 +357,7 @@ exports.addUser = catchAsync(async (req, res, next) => {
       Regards,
       <p>Tinkering Lab Students' Body</p>
       </br>
-      `,      
+      `,
 
     };
     mailService.sendMail(mailOptions, function (err) {
@@ -329,15 +377,15 @@ exports.addUser = catchAsync(async (req, res, next) => {
 
 exports.updateUser = catchAsync(async (req, res, next) => {
   const id = req.params.id;
-  const getUser = await User.findByIdAndUpdate(id, 
+  const getUser = await User.findByIdAndUpdate(id,
     {
       ...req.body,
     });
-    res.status(200).json({
-      status: "user updated successfully",
-      data: getUser,
-    });
+  res.status(200).json({
+    status: "user updated successfully",
+    data: getUser,
   });
+});
 
 exports.searchUsers = catchAsync(async (req, res, next) => {
   const query = req.body.query;
@@ -357,5 +405,139 @@ exports.searchUsers = catchAsync(async (req, res, next) => {
     data: {
       users,
     },
+  });
+})
+
+exports.addHOD = catchAsync(async (req, res, next) => {
+  const { password, passwordConfirm, name, email, designation, contactNumber, department } = req.body;
+  if (password !== passwordConfirm) {
+    return res.status(400).json({
+      status: 'fail',
+      message: 'Passwords do not match'
+    });
+  }
+  const foundDepartment = await departmentModel.findOne({ name: department })
+  if (!foundDepartment) {
+    return res.status(404).json({
+      status: 'fail',
+      message: 'Department not found'
+    });
+  }
+
+  const newHod = await User.create({
+    name,
+    email,
+    password,
+    designation,
+    contactNumber,
+    department: foundDepartment._id,
+    roles: {
+      role: "HOD"
+    },
+    firstLogin: true
+  });
+
+  await departmentModel.findOneAndUpdate(
+    { name: department },
+    { $set: { HOD: newHod._id } },
+    { new: true }
+  )
+  createAndSendToken(newHod, 201, res)
+})
+
+exports.requestLab = catchAsync(async (req, res, next) => {
+  //! also check if the HOD of the department exists or not
+  const { labName, labEmail, labContactNumber, department, adminName, adminEmail, password, passwordConfirm, designation, adminContactNumber } = req.body
+  if (password !== passwordConfirm) {
+    return res.status(400).json({
+      status: 'fail',
+      message: 'Passwords do not match'
+    });
+  }
+  const foundDepartment = await departmentModel.findOne({ name: department })
+
+
+  /* create the lab admin as a user */
+  const newUser = await User.create({
+    name: adminName,
+    email: adminEmail,
+    password,
+    designation,
+    contactNumber: adminContactNumber,
+    department: foundDepartment._id,
+    roles: {
+      role: "User"
+    },
+    firstLogin: true
+  })
+
+  /* create an application for the lab */
+  const newApplication = await applicationModel.create({
+    type: "Lab Admin",
+    department: foundDepartment._id,
+    requesterId: newUser._id,
+    concernedUser: foundDepartment.HOD,
+    data: {
+      labName,
+      labEmail,
+      labContactNumber
+    },
+    status: "initiated"
+  })
+
+  //TODO: mail
+
+  createAndSendToken(newUser, 201, res)
+})
+
+
+exports.getAdminDashboard = catchAsync(async (req, res) => {
+  const { data } = req.body //this data will come from channel i
+  const user = await User.findOne({ email: data.email })
+  if (!user) {
+    return res.status(404).json({
+      status: "fail",
+      message: "User not found"
+    })
+  }
+  else {
+    res.status(200).json({
+      status: "success",
+      data: user
+    })
+  }
+})
+
+exports.addStaff = catchAsync(async (req, res, next) => {
+  /* map through each application and create the user and send mail to each user*/
+  const { applications, department, lab } = req.body
+  function generateRandomString(length) {
+    const characters = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let randomString = '';
+
+    for (let i = 0; i < length; i++) {
+      const randomIndex = Math.floor(Math.random() * characters.length);
+      randomString += characters[randomIndex];
+    }
+
+    return randomString;
+  }
+  applications.map(async (application) => {
+    const password = generateRandomString(10);
+    await User.create({
+      name: application.name,
+      email: application.email,
+      password,
+      department,
+      roles: {
+        role: "Staff",
+        lab
+      }, firstLogin: true
+    })
+  })
+
+  //mail the users
+  res.status(200).json({
+    status: "success",
   });
 })

@@ -3,10 +3,10 @@ const validator = require("validator");
 const bcrypt = require("bcryptjs");
 
 const UserSchema = new mongoose.Schema({
-  userId: {
-    type: Number,
-    required: [true,"userId is required"]
-  },
+  // userId: {
+  //   type: Number,
+  //   required: [true,"userId is required"]
+  // },
   name: {
     type: String,
     required: [true, "Name is required"],
@@ -22,13 +22,14 @@ const UserSchema = new mongoose.Schema({
     required: true,
     select: false,
   },
+  /* removed required attribute because when adding staff the lab admin has to fill these informations , instead we can make the staff himself add the info */
   designation: {
     type: String,
-    required: [true, "Please provide designation"],
+    // required: [true, "Please provide designation"], 
   },
   contactNumber: {
     type: Number,
-    required: [true, "Please provide Contact Number"],
+    // required: [true, "Please provide Contact Number"],
   },
   department: {
     type: mongoose.Schema.Types.ObjectId,
@@ -46,6 +47,18 @@ const UserSchema = new mongoose.Schema({
             ref: 'labModel',
           },
     },
+  projects:[
+    {
+        type:mongoose.Schema.Types.ObjectId,
+        ref:"projectModel"
+    }
+  ],
+  projectMentors:[
+    {
+        type:mongoose.Schema.Types.ObjectId,
+        ref:"projectModel"
+    }
+  ],
   issuedItems:[
     {
         itemRef:{

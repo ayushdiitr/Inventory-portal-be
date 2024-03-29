@@ -11,7 +11,15 @@ const DepartmentSchema = new mongoose.Schema({
   },
   contactNumber:{
     type:String,
-    required:[true,"contact number of hte department is required"]
+    required:[true,"contact number of the department is required"]
+  },
+  labs:[{
+    type:mongoose.Schema.Types.ObjectId,
+    ref:"labModel"
+  }],
+  HOD:{
+    type:mongoose.Schema.Types.ObjectId,
+    ref:"userModel"
   }
 });
 

@@ -8,6 +8,8 @@ const itemRouter = require("./Routes/itemRoutes");
 const logsRouter = require("./Routes/logsRoutes");
 const departmentRouter=require("./Routes/departmentRoutes")
 const labsRouter = require("./Routes/labRoutes")
+const applicationRouter = require("./Routes/applicationRoutes");
+const projectRouter = require("./Routes/projectRoutes");
 const AppError = require("./utils/appError");
 const swaggerUi = require("swagger-ui-express");
 dotenv.config();
@@ -58,6 +60,8 @@ app.use("/app/v1/item", itemRouter);
 app.use("/app/v1/logs", logsRouter);
 app.use("/app/v1/department",departmentRouter);
 app.use("/app/v1/lab", labsRouter);
+app.use("/app/v1/application",applicationRouter);
+app.use("/app/v1/project", projectRouter);
 
 app.use("*", (req, res, next) => {
   next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));

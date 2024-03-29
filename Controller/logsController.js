@@ -4,6 +4,8 @@ const Lab = require("../Models/labModel");
 const AppError = require("../utils/appError");
 const catchAsync = require("../utils/catchAsync");
 const mailService = require("../utils/mailSerive");
+const projectModel = require("../Models/projectModel");
+const applicationModel = require("../Models/applicationModel");
 
 exports.issueItem = catchAsync(async (req, res, next) => {
   let id = req.params.id;
@@ -266,5 +268,58 @@ exports.deleteAll = catchAsync(async (req, res, next) => {
 
   res.status(204).json({
     status: "success",
+  });
+});
+
+exports.requestItem = catchAsync(async (req, res, next) => {
+  if(req.user.projects.length == 0){
+    return res.status(400).json({
+      status: "Error",
+      message: "You are not a part of any project",
+    });
+  }
+  //send mail and application to mentor
+  const {projectId,details} = req.body;
+  const project = await projectModel.findById(projectId);
+  const mentor = project.mentor;
+  const newApplication = await applicationModel.create({
+    type: "item request",
+    department: req.user.department,
+    requesterId: req.user._id,
+    concernedUser: mentor,
+    status: "initiated",
+    data: details,
+  })
+  // if(newApplication){
+  //   const mailOptions = {
+  //     from: "",
+  //     to: mentor.email,
+  //     subject: `Item Request`,
+  //     html: ` This is to inform you that ${req.user.name} has requested an item.
+  //     <br>Item Details: </br>
+  //     <br>Item Name: ${details.itemName}</br>
+  //     <br>Item Quantity: ${details.quantity}</br>
+  //     <br>Item Type: ${details.itemType}</br>
+  //     <br>Item Description: ${details.description}</br>
+  //     <br>Item Reason: ${details.reason}</br>
+  //     <br>Item Required By: ${details.requiredBy}</br>
+  //     <br>Item Required For: ${details.requiredFor}</br>
+  //     <br>Item Required For Project: ${project.title}</br>
+  //     <br>Item Required For Project Description: ${project.description}</br>
+  //     <br>Project Lab: ${project.lab}</br>
+  //     <br>Department: ${project.department}</br>
+  //     Regards,`,
+  //   };
+  //   mailService.sendMail(mailOptions, function (err) {
+  //     if (err) {
+  //       return next(new AppError(err.message, err.statusCode));
+  //     } else {
+  //       console.log("Mail sent successfully!");
+  //     }
+  //   });
+  // }
+  res.status(201).json({
+    status: "Success",
+    data: newApplication,
   });
 });

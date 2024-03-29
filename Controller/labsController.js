@@ -2,7 +2,7 @@ const LabModel = require("../Models/labModel");
 const DepartmentModel = require("../Models/departmentModel");
 
 exports.addLab = async (req, res) => {
-  const { name, email, contactNumber, department, fc } = req.body; //the department will be a drop down in the frontend
+  const { name, email, contactNumber, department, facultyCoordinator } = req.body; //the department will be a drop down in the frontend
   try {
     const foundDepartment = await DepartmentModel.findOne({ name: department });
     if (foundDepartment) {
@@ -46,3 +46,5 @@ exports.getLabs = async (req, res) => {
     });
   }
 }
+
+
