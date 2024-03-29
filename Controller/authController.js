@@ -9,6 +9,9 @@ const labModel = require("../Models/labModel");
 const departmentModel = require("../Models/departmentModel");
 const mailService = require("../utils/mailSerive");
 const applicationModel = require("../Models/applicationModel");
+const { default: axios } = require("axios");
+const FormData = require("form-data");
+const userModel = require("../Models/userModel");
 // const sendEmail = require('../utils/email');
 
 const signToken = (id) => {
@@ -22,6 +25,30 @@ const signToken = (id) => {
     }
   );
 };
+
+async function createAccessToken(code, redirect_uri) {
+  const formdata = new FormData();
+  formdata.append("client_id", process.env.CLIENT_ID);
+  formdata.append("client_secret", process.env.CLIENT_SECRET);
+  formdata.append("grant_type", "authorization_code");
+  formdata.append("code", code);
+  formdata.append("redirect_uri", redirect_uri);
+
+  const authTokens = await axios({
+    method: "post",
+    url: "https://channeli.in/open_auth/token/",
+    data: formdata,
+    headers: formdata.getHeaders(),
+  })
+    .then((response) => {
+      return response.data;
+    })
+    .catch((err) => {
+      console.log("Error in getting access token", err);
+    });
+
+  return authTokens;
+}
 
 //* Token function
 
@@ -541,3 +568,80 @@ exports.addStaff = catchAsync(async (req, res, next) => {
     status: "success",
   });
 })
+
+exports.oAuthLogin = catchAsync(async (req, res, next) => {
+  const {code} = req.body;
+  const authTokens = await createAccessToken(code, process.env.REDIRECT_URI);
+  console.log(authTokens);
+  
+  const userData = await axios({
+    method: "get",
+    url: "https://channeli.in/open_auth/get_user_data/",
+    headers: {
+      Authorization: `Bearer ${authTokens.access_token}`,
+    },
+  })
+    .then((response) => {
+      return response.data;
+    })
+    .catch((err) => {
+      return undefined;
+    });
+  console.log("USER DATA",userData);
+  console.log("MAIL ADDRESS",userData.contactInformation.instituteWebmailAddress)
+    const user = await userModel.findOne({email:userData.contactInformation.instituteWebmailAddress});
+    if(user){
+      console.log("USER FOUND")
+      createAndSendToken(user, 200, res);
+    }else{
+      console.log("USer not found")
+      const isStudent = userData.person.roles[0].role === "Student";
+      if(isStudent){
+        const departmentName = userData.student['branch department name'];
+        const foundDepartemnt = await departmentModel.findOne({name:departmentName});
+        if(!foundDepartemnt){
+          return res.status(404).json({
+            status:"fail",
+            message:"Department not found"
+          });
+        }
+        const newUser = await userModel.create({
+          name:userData.person.fullName,
+          email:userData.contactInformation.instituteWebmailAddress,
+          designation:userData.person.roles[0].role,
+          contactNumber:userData.contactInformation.primaryPhoneNumber,
+          department:foundDepartemnt._id,
+          roles:{
+            role:"User"
+          },
+          firstLogin:true
+        })
+        console.log("NEW USER",newUser);
+        newUser.department = foundDepartemnt.name;
+        createAndSendToken(newUser, 201, res);
+      }else{
+        const departmentName = userData.facultyMember["department name"]
+        const foundDepartemnt = await departmentModel.findOne({name:departmentName});
+        if(!foundDepartemnt){
+          return res.status(404).json({
+            status:"fail",
+            message:"Department not found"
+          });
+        }
+        const newUser = await userModel.create({
+          name:userData.person.fullName,
+          email:userData.contactInformation.instituteWebmailAddress,
+          designation:userData.person.roles[0].role,
+          contactNumber:userData.contactInformation.primaryPhoneNumber,
+          department:foundDepartemnt._id,
+          roles:{
+            role:"Lab Admin"
+          },
+          firstLogin:true
+        })
+        newUser.department = foundDepartemnt.name;
+        console.log("NEW USER",newUser);
+        createAndSendToken(newUser, 201, res);
+      }
+    }
+});

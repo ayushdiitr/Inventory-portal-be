@@ -15,4 +15,5 @@ router.post("/add/hod",authController.addHOD);
 router.post("/add/lab",authController.requestLab);
 router.post("/admin/login",authController.getAdminDashboard);
 router.post("/staff/add",authController.addStaff);
+router.post("/oauth/login",authController.oAuthLogin)
 module.exports = router;

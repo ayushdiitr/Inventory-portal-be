@@ -19,7 +19,7 @@ const UserSchema = new mongoose.Schema({
   },
   password: {
     type: String,
-    required: true,
+    // required: true,
     select: false,
   },
   /* removed required attribute because when adding staff the lab admin has to fill these informations , instead we can make the staff himself add the info */
